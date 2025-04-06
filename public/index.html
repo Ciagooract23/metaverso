@@ -28,45 +28,64 @@
   <script>
      const socket = io();
 
-    let username = prompt("Inserisci il tuo nome:");
-    if (!username) {
-      alert("Devi inserire un nome per partecipare alla chat.");
-      location.reload();
+  // Chiede il nome utente
+  let username = prompt("Inserisci il tuo nome:");
+  if (!username) {
+    alert("Devi inserire un nome per partecipare alla chat.");
+    location.reload();
+  }
+  socket.emit('new user', username);
+
+  // Elementi della UI
+  const messageInput = document.getElementById('messageInput');
+  const sendButton = document.getElementById('sendButton');
+  const messagesDiv = document.getElementById('messages');
+  const userList = document.getElementById('userList');
+
+  // Funzione per inviare un messaggio
+  function sendMessage() {
+    const text = messageInput.value.trim();
+    if (text !== "") {
+      socket.emit('new message', text);  // Invia al server
+      messageInput.value = "";           // Pulisce campo
     }
-    socket.emit('new user', username);
+  }
 
-    const messageInput = document.getElementById('messageInput');
-    const messagesDiv = document.getElementById('messages');
-    const userList = document.getElementById('userList');
+  // Invia messaggio con click su "Invia"
+  sendButton.addEventListener('click', sendMessage);
 
-    messageInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && messageInput.value.trim() !== "") {
-        socket.emit('new message', messageInput.value);
-        messageInput.value = "";
-      }
+  // Invia messaggio con "Enter"
+  messageInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  // Ricezione di nuovi messaggi
+  socket.on('new message', (data) => {
+    const msgElem = document.createElement('div');
+
+    if (data.username === username) {
+      msgElem.classList.add('message', 'self');  // Messaggio tuo
+    } else {
+      msgElem.classList.add('message', 'other'); // Messaggio ricevuto
+      msgElem.setAttribute('data-username', data.username);
+    }
+
+    msgElem.textContent = data.message;
+    messagesDiv.appendChild(msgElem);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll automatico
+  });
+
+  // Aggiorna la lista degli utenti online
+  socket.on('update users', (users) => {
+    userList.innerHTML = "";
+    users.forEach((user) => {
+      const li = document.createElement('li');
+      li.textContent = user;
+      userList.appendChild(li);
     });
-
-    socket.on('new message', (data) => {
-      const msgElem = document.createElement('div');
-      if (data.username === username) {
-        msgElem.classList.add('message', 'self');
-      } else {
-        msgElem.classList.add('message', 'other');
-        msgElem.setAttribute('data-username', data.username);
-      }
-      msgElem.textContent = data.message;
-      messagesDiv.appendChild(msgElem);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
-
-    socket.on('update users', (users) => {
-      userList.innerHTML = "";
-      users.forEach((user) => {
-        const li = document.createElement('li');
-        li.textContent = user;
-        userList.appendChild(li);
-      });
-    });
+  });
   </script>
 </body>
 </html>
