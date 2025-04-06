@@ -1,154 +1,33 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MetaChat</title>
+  <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="metaverso.jpg" type="image/x-icon">
-  <style>
-    /* Reset base */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #ece5dd;
-      height: 100vh;
-      display: flex;
-    }
-    /* Sidebar sinistra */
-    #sidebar {
-      width: 30%;
-      max-width: 350px;
-      background: #f8f9fa;
-      border-right: 1px solid #ddd;
-      display: flex;
-      flex-direction: column;
-    }
-    #sidebar header {
-      background: #ededed;
-      padding: 15px;
-      text-align: center;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-    }
-    #userList {
-      list-style: none;
-      overflow-y: auto;
-      flex: 1;
-    }
-    #userList li {
-      padding: 15px;
-      border-bottom: 1px solid #ddd;
-      cursor: pointer;
-    }
-    #userList li:hover {
-      background: #ebebeb;
-    }
-    /* Area Chat */
-    #chat {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: #dcdcdc;
-    }
-    /* Header chat (come in WhatsApp Web, con nome o info della conversazione) */
-    #chat header {
-      background: #ededed;
-      padding: 15px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-    }
-    #chat header .chat-title {
-      font-size: 16px;
-      font-weight: bold;
-    }
-    /* Area messaggi: sfondo che ricorda WhatsApp */
-    #messages {
-      flex: 1;
-      padding: 20px;
-      background: #e5ddd5;
-      overflow-y: auto;
-    }
-    /* Bolle di messaggio */
-    .message {
-      max-width: 70%;
-      margin-bottom: 10px;
-      padding: 10px 15px;
-      border-radius: 8px;
-      position: relative;
-      word-wrap: break-word;
-      line-height: 1.4;
-    }
-    /* Messaggi inviati dall'utente corrente */
-    .message.self {
-      background: #dcf8c6;
-      margin-left: auto;
-      border-bottom-right-radius: 0;
-    }
-    /* Messaggi ricevuti */
-    .message.other {
-      background: #fff;
-      margin-right: auto;
-      border-bottom-left-radius: 0;
-    }
-    /* Nome utente sopra il messaggio (per i messaggi ricevuti) */
-    .message.other::before {
-      content: attr(data-username);
-      display: block;
-      font-size: 12px;
-      font-weight: bold;
-      margin-bottom: 3px;
-    }
-    /* Stato "sta scrivendo" */
-    #typingStatus {
-      padding: 5px 20px;
-      font-style: italic;
-      color: #555;
-      background: #e5ddd5;
-      min-height: 20px;
-    }
-    /* Input area */
-    #inputArea {
-      background: #f0f0f0;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      border-top: 1px solid #ddd;
-    }
-    #messageInput {
-      flex: 1;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 25px;
-      outline: none;
-      font-size: 14px;
-      background: #fff;
-    }
-  </style>
 </head>
 <body>
-  <!-- Sidebar: Lista contatti -->
   <div id="sidebar">
     <header>Utenti Online</header>
     <ul id="userList"></ul>
   </div>
-
-  <!-- Area Chat -->
   <div id="chat">
     <header>
-      <div class="chat-title">MetaChat</div>
+      <div class="chat-title">Metaverso</div>
     </header>
     <div id="messages"></div>
     <div id="typingStatus"></div>
     <div id="inputArea">
       <input id="messageInput" type="text" placeholder="Scrivi un messaggio..." autocomplete="off" />
+      <button id="sendButton" title="Invia Messaggio">Invia</button>
     </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+     const socket = io();
 
-    // Richiedi il nome utente all'avvio
     let username = prompt("Inserisci il tuo nome:");
     if (!username) {
       alert("Devi inserire un nome per partecipare alla chat.");
@@ -158,33 +37,17 @@
 
     const messageInput = document.getElementById('messageInput');
     const messagesDiv = document.getElementById('messages');
-    const typingStatus = document.getElementById('typingStatus');
     const userList = document.getElementById('userList');
-
-    // Per gestire eventuali più utenti che scrivono contemporaneamente
-    const typingUsers = new Set();
-
-    let typingTimeout;
-    messageInput.addEventListener('input', () => {
-      socket.emit('typing');
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        socket.emit('stop typing');
-      }, 1000);
-    });
 
     messageInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && messageInput.value.trim() !== "") {
         socket.emit('new message', messageInput.value);
         messageInput.value = "";
-        socket.emit('stop typing');
       }
     });
 
-    // Gestione dei nuovi messaggi
     socket.on('new message', (data) => {
       const msgElem = document.createElement('div');
-      // Verifica se il messaggio proviene dall'utente corrente
       if (data.username === username) {
         msgElem.classList.add('message', 'self');
       } else {
@@ -196,27 +59,6 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 
-    // Gestione dello stato "sta scrivendo" per più utenti
-    socket.on('typing', (user) => {
-      typingUsers.add(user);
-      updateTypingStatus();
-    });
-
-    socket.on('stop typing', (user) => {
-      typingUsers.delete(user);
-      updateTypingStatus();
-    });
-
-    function updateTypingStatus() {
-      if (typingUsers.size === 0) {
-        typingStatus.textContent = "";
-      } else {
-        const usersArray = Array.from(typingUsers);
-        typingStatus.textContent = usersArray.join(', ') + " sta scrivendo...";
-      }
-    }
-
-    // Aggiornamento della lista degli utenti online
     socket.on('update users', (users) => {
       userList.innerHTML = "";
       users.forEach((user) => {
