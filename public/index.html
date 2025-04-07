@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Metaverso</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="favicon" href="metaverso.jpg" type="icon/favicon">
+  <meta charset="UTF-8">
+  <title>Google Messaggi Clone</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="favicon" href="metaverso.jpg" type="icon">
 </head>
 <body>
-  <div class="chat-container">
-    <div class="sidebar">
-      <h3>Utenti Online</h3>
-      <ul id="userList"></ul>
-    </div>
-    <div class="main-chat">
-      <div id="messages" class="messages"></div>
-      <div class="message-input">
-        <input type="text" id="message" placeholder="Scrivi un messaggio..." autocomplete="off" />
-        <button id="sendBtn">Invia</button>
-      </div>
-    </div>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Utenti Online</h2>
+      <ul id="users"></ul>
+    </aside>
+    <main class="chat">
+      <div id="messages"></div>
+      <div id="typing-indicator"></div>
+      <form id="form">
+        <input type="text" id="input" autocomplete="off" placeholder="Scrivi un messaggio..."/>
+        <button type="submit">Invia</button>
+      </form>
+    </main>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
