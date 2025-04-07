@@ -108,3 +108,35 @@ form button {
     border-bottom: 1px solid #ddd;
   }
 }
+/* Responsività */
+@media (max-width: 600px) {
+  #login input {
+    width: 150px;
+  }
+
+  #login button {
+    width: 100%;
+  }
+
+  #messageInput {
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
+
+#messages {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message.sent {
+  align-self: flex-end;
+}
+
+.message.received {
+  align-self: flex-start;
+}
