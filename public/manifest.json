@@ -1,0 +1,28 @@
+{
+  "name": "Metavero",
+  "theme_color": "#f8f6fd",
+  "background_color": "#1909f8",
+  "short_name": "MetaChat",
+  "description": "Chat di messagistica instantanea"
+}
+{
+  "name": "Metaverso Chat",
+  "short_name": "Metaverso",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#075e54",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
