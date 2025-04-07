@@ -1,48 +1,65 @@
 const socket = io();
-const username = prompt("Inserisci il tuo nome utente:");
+let userName = '';
+let messagesContainer = document.getElementById('messages');
+let messageInput = document.getElementById('messageInput');
+let userList = document.getElementById('userList');
 
-// Funzione di invio messaggio
+// Funzione per entrare nella chat
+function joinChat() {
+  userName = document.getElementById('userName').value.trim();
+  if (userName) {
+    socket.emit('newUser', userName);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+  } else {
+    alert('Per favore, inserisci un nome valido');
+  }
+}
+
+// Aggiungi un listener per il tasto "Enter" nel campo del nome utente
+document.getElementById('userName').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {  // "Enter" premuto
+    joinChat();
+  }
+});
+
+// Funzione per inviare un messaggio
 function sendMessage() {
-  const messageInput = document.getElementById('message-input');
-  const message = messageInput.value;
-
-  if (message.trim()) {
-    socket.emit('chat message', { username, message });
+  let message = messageInput.value.trim();
+  if (message) {
+    socket.emit('sendMessage', message);
     messageInput.value = '';
   }
 }
 
-// Invia con il pulsante
-document.getElementById('send-button').addEventListener('click', () => {
-  sendMessage();
-});
-
-// Invia con invio da tastiera
-document.getElementById('message-input').addEventListener('keypress', function (e) {
-  if (e.key === 'Enter') {
+// Aggiungi un listener per il tasto "Enter" (invio) sulla tastiera per i messaggi
+messageInput.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {  // "Enter" senza "Shift"
     sendMessage();
+    event.preventDefault();  // Evita che il "Enter" vada a capo
   }
 });
 
-// Ricezione messaggi
-socket.on('chat message', (data) => {
-  const newMessage = document.createElement('div');
-  newMessage.classList.add('message');
+// Gestisci la visualizzazione dei messaggi
+socket.on('message', (data) => {
+  // Evita che venga visualizzato "undefined: undefined"
+  if (data && data.userName && data.message) {
+    let messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    
+    if (data.userName === userName) {
+      messageElement.classList.add('sent');
+    } else {
+      messageElement.classList.add('received');
+    }
 
-  const userNameElement = document.createElement('strong');
-  userNameElement.textContent = data.username + ': ';
-  newMessage.appendChild(userNameElement);
-
-  const messageText = document.createElement('span');
-  messageText.textContent = data.message;
-  newMessage.appendChild(messageText);
-
-  if (data.username === username) {
-    newMessage.classList.add('sent');
-  } else {
-    newMessage.classList.add('received');
+    messageElement.textContent = `${data.userName}: ${data.message}`;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
+});
 
-  document.getElementById('chat-box').appendChild(newMessage);
-  document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+// Gestisci l'elenco degli utenti online
+socket.on('userList', (users) => {
+  userList.innerHTML = `Utenti online: ${users.join(', ')}`;
 });

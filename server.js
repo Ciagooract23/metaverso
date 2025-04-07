@@ -1,56 +1,45 @@
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const server = http.createServer(app);
+const io = socketIo(server);
 
-const PORT = process.env.PORT || 3000;
+app.use(express.static('public')); // Serve la favicon e altri file statici
 
-// Serve i file statici dalla cartella "public"
-app.use(express.static('public'));
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 
-let onlineUsers = {};
+let users = [];
 
 io.on('connection', (socket) => {
-  console.log('Utente connesso:', socket.id);
-
-  // Registrazione del nuovo utente
-  socket.on('new user', (username) => {
-    socket.username = username;
-    onlineUsers[socket.id] = username;
-    io.emit('update users', Object.values(onlineUsers));
-    console.log(`${username} è online`);
+  let userName = '';
+  
+  // Gestisci quando un nuovo utente si connette
+  socket.on('newUser', (name) => {
+    userName = name;
+    users.push(userName);
+    io.emit('userList', users);
+    io.emit('message', { userName: 'System', message: `${userName} è online` });
   });
 
-  // Quando un utente sta scrivendo, invia l'evento a tutti gli utenti (incluso chi scrive)
-  socket.on('typing', () => {
-    io.emit('typing', socket.username);
-  });
-
-  // Quando il messaggio viene inviato
-  socket.on('new message', (msg) => {
-    io.emit('new message', {
-      username: socket.username,
-      message: msg
-    });
-    // Comunica a tutti di smettere di scrivere
-    io.emit('stop typing', socket.username);
-  });
-
-  // Quando l'utente smette di scrivere
-  socket.on('stop typing', () => {
-    io.emit('stop typing', socket.username);
-  });
-
-  // Gestione della disconnessione
-  socket.on('disconnect', () => {
-    console.log('Utente disconnesso:', socket.id);
-    if (socket.username) {
-      delete onlineUsers[socket.id];
-      io.emit('update users', Object.values(onlineUsers));
+  // Gestisci quando un utente invia un messaggio
+  socket.on('sendMessage', (message) => {
+    if (message.trim()) {
+      io.emit('message', { userName, message });
     }
+  });
+
+  // Gestisci quando un utente si disconnette
+  socket.on('disconnect', () => {
+    users = users.filter(user => user !== userName);
+    io.emit('userList', users);
+    io.emit('message', { userName: 'System', message: `${userName} è offline` });
   });
 });
 
-http.listen(PORT, () => {
-  console.log(`Server in ascolto sulla porta ${PORT}`);
+server.listen(3000, () => {
+  console.log('Server in ascolto su http://localhost:3000');
 });

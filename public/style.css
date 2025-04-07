@@ -1,126 +1,142 @@
-* {
-  box-sizing: border-box;
+/* Stili generali */
+body {
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #f5f5f5;
 }
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #ece5dd;
+
+#login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 100vh;
-  display: flex;
-}
-
-/* Sidebar contatti */
-#sidebar {
-  width: 30%;
-  max-width: 350px;
-  background: #f8f9fa;
-  border-right: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-}
-#sidebar header {
-  background: #ededed;
-  padding: 15px;
-  text-align: center;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-}
-#userList {
-  list-style: none;
-  overflow-y: auto;
-  flex: 1;
-}
-#userList li {
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-#userList li:hover {
-  background: #ebebeb;
-}
-
-/* Chat */
-#chat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #dcdcdc;
-}
-#chat header {
-  background: #ededed;
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-}
-.chat-title {
-  font-size: 16px;
-  font-weight: bold;
-}
-#messages {
-  flex: 1;
+  background-color: #fff;
   padding: 20px;
-  background: #e5ddd5;
-  overflow-y: auto;
-}
-.message {
-  max-width: 70%;
-  margin-bottom: 10px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  position: relative;
-  word-wrap: break-word;
-  line-height: 1.4;
-}
-.message.self {
-  background: #dcf8c6;
-  margin-left: auto;
-  border-bottom-right-radius: 0;
-}
-.message.other {
-  background: #fff;
-  margin-right: auto;
-  border-bottom-left-radius: 0;
-}
-.message.other::before {
-  content: attr(data-username);
-  display: block;
-  font-size: 12px;
-  font-weight: bold;
-  margin-bottom: 3px;
 }
 
-/* Input area */
-#inputArea {
-  background: #f0f0f0;
+#login input {
   padding: 10px;
-  display: flex;
-  align-items: center;
-  border-top: 1px solid #ddd;
+  margin-right: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  width: 200px;
 }
-#messageInput {
-  flex: 1;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 25px;
-  outline: none;
-  font-size: 14px;
-  background: #fff;
-}
-#sendButton {
-  margin-left: 10px;
-  background-color: #008069;
+
+#login button {
+  padding: 10px 20px;
+  background-color: #34b7f1;
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  font-weight: bold;
-  font-size: 12px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  font-size: 16px;
 }
-#sendButton:hover {
-  background-color: #006e5f;
+
+#login button:hover {
+  background-color: #007bff;
+}
+
+#chat {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #fff;
+  padding: 20px;
+  justify-content: flex-end;
+}
+
+#userList {
+  padding: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+#messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 70%;
+  margin-bottom: 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  display: inline-block;
+  clear: both;
+}
+
+.message.sent {
+  background-color: #34b7f1;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.message.received {
+  background-color: #e5e5ea;
+  color: #000;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
+#messageInput {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 12px 20px;
+  background-color: #34b7f1;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #007bff;
+}
+
+/* Responsività */
+@media (max-width: 600px) {
+  #login input {
+    width: 150px;
+  }
+
+  #login button {
+    width: 100%;
+  }
+
+  #messageInput {
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
+
+#messages {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message.sent {
+  align-self: flex-end;
+}
+
+.message.received {
+  align-self: flex-start;
 }
