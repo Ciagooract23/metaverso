@@ -1,65 +1,62 @@
 const socket = io();
-let userName = '';
-let messagesContainer = document.getElementById('messages');
-let messageInput = document.getElementById('messageInput');
-let userList = document.getElementById('userList');
+let username = "";
 
-// Funzione per entrare nella chat
-function joinChat() {
-  userName = document.getElementById('userName').value.trim();
-  if (userName) {
-    socket.emit('newUser', userName);
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('chat').style.display = 'block';
-  } else {
-    alert('Per favore, inserisci un nome valido');
-  }
+// Richiedi nome utente all'ingresso
+while (!username) {
+  username = prompt("Inserisci il tuo nome:");
 }
 
-// Aggiungi un listener per il tasto "Enter" nel campo del nome utente
-document.getElementById('userName').addEventListener('keydown', function(event) {
-  if (event.key === 'Enter') {  // "Enter" premuto
-    joinChat();
-  }
+socket.emit('new-user', username);
+
+// Elementi DOM
+const input = document.getElementById('message');
+const sendBtn = document.getElementById('sendBtn');
+const messages = document.getElementById('messages');
+const userList = document.getElementById('userList');
+
+// Invio con bottone o INVIO
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendMessage();
 });
 
-// Funzione per inviare un messaggio
+// Funzione per inviare messaggio
 function sendMessage() {
-  let message = messageInput.value.trim();
-  if (message) {
-    socket.emit('sendMessage', message);
-    messageInput.value = '';
+  const text = input.value.trim();
+  if (text) {
+    socket.emit('send-message', { text });
+    input.value = '';
   }
 }
 
-// Aggiungi un listener per il tasto "Enter" (invio) sulla tastiera per i messaggi
-messageInput.addEventListener('keydown', function(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {  // "Enter" senza "Shift"
-    sendMessage();
-    event.preventDefault();  // Evita che il "Enter" vada a capo
+// Funzione scroll automatico in fondo
+function scrollToBottom() {
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// Ricezione messaggio
+socket.on('chat-message', data => {
+  const msg = document.createElement('div');
+  msg.classList.add('message');
+  msg.classList.add(data.type);
+
+  if (data.type === 'system') {
+    msg.classList.add('system');
+    msg.textContent = data.text;
+  } else {
+    msg.innerHTML = `<strong>${data.sender}</strong><br>${data.text}`;
   }
+
+  messages.appendChild(msg);
+  scrollToBottom(); // scroll automatico quando arriva un nuovo messaggio
 });
 
-// Gestisci la visualizzazione dei messaggi
-socket.on('message', (data) => {
-  // Evita che venga visualizzato "undefined: undefined"
-  if (data && data.userName && data.message) {
-    let messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    
-    if (data.userName === userName) {
-      messageElement.classList.add('sent');
-    } else {
-      messageElement.classList.add('received');
-    }
-
-    messageElement.textContent = `${data.userName}: ${data.message}`;
-    messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
-});
-
-// Gestisci l'elenco degli utenti online
-socket.on('userList', (users) => {
-  userList.innerHTML = `Utenti online: ${users.join(', ')}`;
+// Aggiornamento lista utenti online
+socket.on('user-list', users => {
+  userList.innerHTML = '';
+  users.forEach(user => {
+    const li = document.createElement('li');
+    li.textContent = user;
+    userList.appendChild(li);
+  });
 });

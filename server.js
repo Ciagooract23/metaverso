@@ -1,45 +1,54 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const users = {};
 
-app.use(express.static('public')); // Serve la favicon e altri file statici
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-let users = [];
-
-io.on('connection', (socket) => {
-  let userName = '';
-  
-  // Gestisci quando un nuovo utente si connette
-  socket.on('newUser', (name) => {
-    userName = name;
-    users.push(userName);
-    io.emit('userList', users);
-    io.emit('message', { userName: 'System', message: `${userName} è online` });
+io.on('connection', socket => {
+  socket.on('new-user', username => {
+    users[socket.id] = username;
+    io.emit('user-list', Object.values(users));
+    socket.broadcast.emit('chat-message', {
+      text: `${username} è entrato nella chat`,
+      type: 'system'
+    });
   });
 
-  // Gestisci quando un utente invia un messaggio
-  socket.on('sendMessage', (message) => {
-    if (message.trim()) {
-      io.emit('message', { userName, message });
+  socket.on('send-message', data => {
+    socket.broadcast.emit('chat-message', {
+      text: data.text,
+      sender: users[socket.id],
+      type: 'received'
+    });
+
+    // Mostra anche il messaggio all'utente mittente
+    socket.emit('chat-message', {
+      text: data.text,
+      sender: 'Tu',
+      type: 'sent'
+    });
+  });
+
+  socket.on('disconnect', () => {
+    const username = users[socket.id];
+    delete users[socket.id];
+    io.emit('user-list', Object.values(users));
+    if (username) {
+      socket.broadcast.emit('chat-message', {
+        text: `${username} ha lasciato la chat`,
+        type: 'system'
+      });
     }
   });
-
-  // Gestisci quando un utente si disconnette
-  socket.on('disconnect', () => {
-    users = users.filter(user => user !== userName);
-    io.emit('userList', users);
-    io.emit('message', { userName: 'System', message: `${userName} è offline` });
-  });
 });
 
-server.listen(3000, () => {
-  console.log('Server in ascolto su http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server su http://localhost:${PORT}`);
 });
