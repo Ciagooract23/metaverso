@@ -1,64 +1,62 @@
-const socket = io();
+const popupContainer = document.getElementById('popup-container');
+const usernameInput = document.getElementById('username-input');
+const loginButton = document.getElementById('login-button');
+const chatContainer = document.getElementById('chat-container');
+const messagesDiv = document.getElementById('messages');
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
+
 let username = '';
+const socket = io();
 
-while (!username) {
-  username = prompt("Inserisci il tuo nome utente:");
-}
-socket.emit('new-user', username);
-
-const form = document.getElementById('form');
-const input = document.getElementById('input');
-const messages = document.getElementById('messages');
-const usersList = document.getElementById('users');
-const typingIndicator = document.getElementById('typing-indicator');
-
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  if (input.value) {
-    appendMessage(input.value, 'sent');
-    socket.emit('send-message', input.value);
-    input.value = '';
-  }
+// Aggiunto event listener per il tasto Invio nel campo usernameInput
+usernameInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        loginButton.click();
+    }
 });
 
-input.addEventListener('input', () => {
-  socket.emit('typing');
+loginButton.addEventListener('click', () => {
+    username = usernameInput.value;
+    if (username.trim() !== '') {
+        socket.emit('set username', username);
+        popupContainer.style.display = 'none';
+        chatContainer.style.display = 'flex';
+    }
 });
 
-socket.on('chat-message', data => {
-  if (data.sender === 'system') {
-    appendSystemMessage(data.message);
-  } else {
-    appendMessage(`${data.sender}: ${data.message}`, 'received');
-  }
+sendButton.addEventListener('click', () => {
+    const message = messageInput.value;
+    if (message.trim() !== '') {
+        socket.emit('chat message', message);
+        messageInput.value = '';
+    }
 });
 
-socket.on('user-list', users => {
-  usersList.innerHTML = '';
-  users.forEach(user => {
-    const li = document.createElement('li');
-    li.textContent = user;
-    usersList.appendChild(li);
-  });
+messageInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        sendButton.click();
+    }
 });
 
-socket.on('typing', user => {
-  typingIndicator.textContent = `${user} sta scrivendo...`;
-  setTimeout(() => typingIndicator.textContent = '', 2000);
+socket.on('chat message', (data) => {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', data.username === username ? 'sent' : 'received');
+    messageDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
 
-function appendMessage(msg, type) {
-  const div = document.createElement('div');
-  div.classList.add('message', type);
-  div.textContent = msg;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
+socket.on('user connected', (data) => {
+    const statusDiv = document.createElement('div');
+    statusDiv.textContent = `${data.username} è online`;
+    messagesDiv.appendChild(statusDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
 
-function appendSystemMessage(msg) {
-  const div = document.createElement('div');
-  div.classList.add('message', 'system');
-  div.textContent = msg;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
+socket.on('user disconnected', (data) => {
+    const statusDiv = document.createElement('div');
+    statusDiv.textContent = `${data.username} è offline`;
+    messagesDiv.appendChild(statusDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});

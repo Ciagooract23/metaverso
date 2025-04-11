@@ -1,46 +1,52 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-
-let users = {};
-
-app.use(express.static('public'));
-
-io.on('connection', (socket) => {
-  socket.on('new-user', username => {
-    users[socket.id] = username;
-    io.emit('user-list', Object.values(users));
-    socket.broadcast.emit('chat-message', {
-      message: `${username} si è unito alla chat.`,
-      sender: 'system'
-    });
-  });
-
-  socket.on('send-message', message => {
-    socket.broadcast.emit('chat-message', {
-      message,
-      sender: users[socket.id]
-    });
-  });
-
-  socket.on('typing', () => {
-    socket.broadcast.emit('typing', users[socket.id]);
-  });
-
-  socket.on('disconnect', () => {
-    if (users[socket.id]) {
-      socket.broadcast.emit('chat-message', {
-        message: `${users[socket.id]} ha lasciato la chat.`,
-        sender: 'system'
-      });
-      delete users[socket.id];
-      io.emit('user-list', Object.values(users));
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"]
     }
-  });
 });
 
-server.listen(3000, () => console.log('Server avviato su http://localhost:3000'));
+const users = {}; // Mappa per memorizzare gli utenti e i loro nomi
+
+io.on('connection', (socket) => {
+    console.log('Un utente si è connesso');
+
+    socket.on('set username', (username) => {
+        users[socket.id] = username;
+        io.emit('user connected', {
+            username: username,
+            online: true
+        }); // Invia l'evento 'user connected' a tutti i client
+    });
+
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', {
+            username: users[socket.id],
+            message: msg
+        });
+    });
+
+    socket.on('disconnect', () => {
+        const username = users[socket.id];
+        if (username) {
+            io.emit('user disconnected', {
+                username: username,
+                online: false
+            }); // Invia l'evento 'user disconnected' a tutti i client
+            console.log(`Utente ${username} disconnesso`);
+            delete users[socket.id];
+        }
+    });
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+server.listen(3000, () => {
+    console.log('Server in ascolto sulla porta 3000');
+});
