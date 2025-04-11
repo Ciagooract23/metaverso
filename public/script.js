@@ -7,7 +7,7 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 
 let username = '';
-const socket = io();
+const socket = io(https://metaverso-fhfn.onrender.com);
 
 // Aggiunto event listener per il tasto Invio nel campo usernameInput
 usernameInput.addEventListener('keydown', (event) => {
