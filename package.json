@@ -1,16 +1,15 @@
 {
-  "name": "metaverso",
+  "name": "chatroom-minimalista",
   "version": "1.0.0",
-  "main": "script.js",
+  "description": "Chatroom web minimalista e reattiva con Node.js e Socket.IO",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "express": "^5.1.0",
-    "socket.io": "^4.8.1"
-  }
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  },
+  "author": "",
+  "license": "ISC"
 }

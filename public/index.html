@@ -1,27 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-    <title>Metaverso</title>
-    <link rel="stylesheet" href="style.css">
-	<link rel="icon" href="metaverso.jpg" type="image/x-icon">
-	<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metaverso</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="metaverso.jpg" type="image/jpeg">
 </head>
 <body>
-    <div id="popup-container">
-        <div id="popup">
-            <input type="text" id="username-input" placeholder="Inserisci il tuo nome...">
-            <button id="login-button">Connettiti</button>
-        </div>
+  <div id="nicknamePopup" class="popup">
+    <div class="popup-content">
+      <h2>Inserisci il tuo nome</h2>
+      <input type="text" id="nicknameInput" placeholder="Nickname">
+      <button onclick="setNickname()">Entra</button>
     </div>
-    <div id="chat-container" style="display: none;">
-        <div id="messages"></div>
-        <div id="input-container">
-            <input type="text" id="message-input" placeholder="Scrivi un messaggio...">
-            <button id="send-button">Invia</button>
-        </div>
-    </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+  </div>
+
+  <div class="container">
+    <aside class="users">
+      <h3>Utenti online</h3>
+      <ul id="userList"></ul>
+    </aside>
+
+    <main class="chat">
+      <div id="messages" class="messages"></div>
+      <form id="messageForm">
+        <input type="text" id="messageInput" autocomplete="off" placeholder="Scrivi un messaggio..." />
+        <button type="submit">Invia</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
