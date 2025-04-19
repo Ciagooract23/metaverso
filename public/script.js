@@ -1,48 +1,47 @@
 const socket = io();
-let nickname = "";
+let typingTimer;
+const TYPING_DELAY = 500;
 
-function setNickname() {
-  nickname = document.getElementById('nicknameInput').value.trim();
-  if (nickname) {
-    document.getElementById('nicknamePopup').style.display = 'none';
-    socket.emit('new user', nickname);
-  }
-}
+const chatArea = document.getElementById('chat-area');
+const msgInput = document.getElementById('msg-input');
+const sendBtn  = document.getElementById('send-btn');
+const typingIndicator = document.getElementById('typing-indicator');
 
-const messageForm = document.getElementById('messageForm');
-const messageInput = document.getElementById('messageInput');
-const messages = document.getElementById('messages');
-const userList = document.getElementById('userList');
+const nickname = prompt('Inserisci il tuo nickname:') || 'Anonimo';
+socket.emit('join', nickname);
 
-messageForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const msg = messageInput.value.trim();
-  if (msg) {
-    socket.emit('chat message', msg);
-    displayMessage(msg, 'sent');
-    messageInput.value = '';
-  }
-});
-
-socket.on('chat message', ({ msg, sender }) => {
-  if (sender !== nickname) {
-    displayMessage(`${sender}: ${msg}`, 'received');
-  }
-});
-
-socket.on('user list', (users) => {
-  userList.innerHTML = '';
-  users.forEach(user => {
-    const li = document.createElement('li');
-    li.textContent = user;
-    userList.appendChild(li);
-  });
-});
-
-function displayMessage(msg, type) {
+// Funzione per aggiungere bolla
+function appendBubble(text, type) {
   const div = document.createElement('div');
-  div.classList.add('message', type);
-  div.textContent = msg;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  div.classList.add('bubble', type);
+  div.textContent = text;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
 }
+
+// Invia messaggio
+function sendMessage() {
+  const text = msgInput.value.trim();
+  if (!text) return;
+  appendBubble(text, 'sent');
+  socket.emit('message', { nickname, text });
+  msgInput.value = '';
+  socket.emit('stopTyping');
+}
+
+sendBtn.addEventListener('click', sendMessage);
+msgInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMessage();
+  socket.emit('typing');
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => socket.emit('stopTyping'), TYPING_DELAY);
+});
+
+// Ricezione messaggi
+socket.on('message', ({ nickname: user, text }) => {
+  appendBubble(`${user}: ${text}`, 'received');
+});
+
+// Indicatore di scrittura
+socket.on('typing', () => typingIndicator.classList.add('show'));
+socket.on('stopTyping', () => typingIndicator.classList.remove('show'));

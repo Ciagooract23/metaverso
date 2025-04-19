@@ -1,32 +1,36 @@
 const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
+const path = require('path');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
 
-let users = {};
+// Definisce la cartella 'public' per i file statici
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
 
-app.use(express.static('public'));
-
-io.on('connection', (socket) => {
-  socket.on('new user', (nickname) => {
-    users[socket.id] = nickname;
-    io.emit('user list', Object.values(users));
-  });
-
-  socket.on('chat message', (msg) => {
-    const sender = users[socket.id];
-    io.emit('chat message', { msg, sender });
-  });
-
-  socket.on('disconnect', () => {
-    delete users[socket.id];
-    io.emit('user list', Object.values(users));
-  });
+// Fallback: serve sempre public/index.html sulla rotta root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-server.listen(3000, () => {
-  console.log('BackRoom è online su http://localhost:3000');
+const http = require('http').createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(http);
+
+io.on('connection', socket => {
+  // Memorizza nickname al join
+  socket.on('join', nickname => {
+    socket.nickname = nickname;
+  });
+
+  // Broadcast dei messaggi agli altri client
+  socket.on('message', msg => {
+    socket.broadcast.emit('message', msg);
+  });
+
+  // Indicatore 'sta scrivendo'
+  socket.on('typing', () => socket.broadcast.emit('typing'));
+  socket.on('stopTyping', () => socket.broadcast.emit('stopTyping'));
 });
+
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => console.log(`Server ascolta su ${PORT}`));

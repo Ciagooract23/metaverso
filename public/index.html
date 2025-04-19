@@ -2,35 +2,28 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metaverso</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chatroom MD3</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="metaverso.jpg" type="image/jpeg">
+  <link rel="icon" href="icon.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <div id="nicknamePopup" class="popup">
-    <div class="popup-content">
-      <h2>Inserisci il tuo nome</h2>
-      <input type="text" id="nicknameInput" placeholder="Nickname">
-      <button onclick="setNickname()">Entra</button>
-    </div>
+  <header>
+    <span class="material-icons">chat_bubble_outline</span>
+    <h1>Chatroom</h1>
+  </header>
+  <main id="chat-area"></main>
+  <div id="typing-indicator">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
   </div>
-
-  <div class="container">
-    <aside class="users">
-      <h3>Utenti online</h3>
-      <ul id="userList"></ul>
-    </aside>
-
-    <main class="chat">
-      <div id="messages" class="messages"></div>
-      <form id="messageForm">
-        <input type="text" id="messageInput" autocomplete="off" placeholder="Scrivi un messaggio..." />
-        <button type="submit">Invia</button>
-      </form>
-    </main>
-  </div>
-
+  <footer>
+    <input id="msg-input" type="text" placeholder="Scrivi un messaggio...">
+    <button id="send-btn">
+      <span class="material-icons">send</span>
+    </button>
+  </footer>
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>
